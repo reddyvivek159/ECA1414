@@ -1,0 +1,84 @@
+#include <stdio.h>
+
+#define SIMULATION_TIME 500
+#define WATCHDOG_TIMEOUT 100
+
+int watchdogCounter = WATCHDOG_TIMEOUT;
+int systemHealthy = 1;
+
+void ReadSensors()
+{
+    printf("10 ms : Reading Sensors\n");
+}
+
+void EngineControl()
+{
+    printf("50 ms : Engine Control Executed\n");
+}
+
+void Diagnostics()
+{
+    printf("100 ms : Diagnostics Executed\n");
+}
+
+void RefreshWatchdog()
+{
+    watchdogCounter = WATCHDOG_TIMEOUT;
+}
+
+void ECUReset()
+{
+    printf("\n***** WATCHDOG TIMEOUT *****\n");
+    printf("ECU RESET SUCCESSFUL\n\n");
+
+    watchdogCounter = WATCHDOG_TIMEOUT;
+    systemHealthy = 1;
+}
+
+void WatchdogTask()
+{
+    watchdogCounter--;
+
+    if (watchdogCounter <= 0)
+    {
+        ECUReset();
+    }
+}
+
+void Scheduler(int time)
+{
+    if (time % 10 == 0)
+        ReadSensors();
+
+    if (time % 50 == 0)
+        EngineControl();
+
+    if (time % 100 == 0)
+        Diagnostics();
+
+    if (systemHealthy)
+        RefreshWatchdog();
+}
+
+int main()
+{
+    int time;
+
+    printf("AUTOMOTIVE ECU SIMULATION\n\n");
+
+    for (time = 1; time <= SIMULATION_TIME; time++)
+    {
+        if (time == 250)
+        {
+            printf("\nSOFTWARE FAILURE DETECTED\n\n");
+            systemHealthy = 0;
+        }
+
+        Scheduler(time);
+        WatchdogTask();
+    }
+
+    printf("\nSIMULATION COMPLETED\n");
+
+    return 0;
+}
